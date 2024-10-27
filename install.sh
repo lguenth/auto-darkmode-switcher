@@ -1,23 +1,28 @@
 #!/bin/bash
 
-echo "Making auto-darkmode-switcher-script executable..."
-THEME_SWITCHER_SCRIPT=$(realpath $(dirname $0))/auto-darkmode-switcher.sh
+echo "Making auto-darkmode-switcher-script executable…"
+THEME_SWITCHER_SCRIPT=$(pwd)/auto-darkmode-switcher.sh
 chmod +x "$THEME_SWITCHER_SCRIPT"
 
-echo "Creating startup-service..."
-# create startup service
-SERVICE_FILE=/etc/systemd/user/auto-darkmode-switcher.service
-sudo rm -f "$SERVICE_FILE"
-echo "[Service]
+echo "Creating startup-service…"
+
+systemctl edit --user --force --full auto-darkmode-switcher.service --stdin <<END
+[Unit]
+Description=Auto Light/Dark Mode Switcher
+
+[Service]
 ExecStart="$THEME_SWITCHER_SCRIPT"
+
 [Install]
-WantedBy=default.target" | sudo tee -a "$SERVICE_FILE" > /dev/null
-systemctl --user enable $(basename "$SERVICE_FILE")
+WantedBy=default.target
+END
 
-echo "Starting auto-darkmode-switcher..."
+echo "Starting auto-darkmode-switcher…"
 
-# execute script once to kick it off
+systemctl enable --user auto-darkmode-switcher.service
+
+# Execute script once to kick it off
 /bin/bash "$THEME_SWITCHER_SCRIPT"
 
 echo "Installation done."
-echo "Your themes will now be changed automatically to light and darkmode at boot and at sunrise and sunset."
+echo "Light and dark mode will now be set at the times configured."
